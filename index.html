@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESBuild WASM TypeScript Playground</title>
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <h1>ESBuild WASM TypeScript Playground</h1>
+      <p>Compile TypeScript in your browser using ESBuild WASM</p>
+    </header>
+
+    <div class="playground-container">
+      <div class="editor-section">
+        <h3>TypeScript Input</h3>
+        <div class="file-tabs">
+          <button class="tab-button active" data-file="example1">example1.ts</button>
+          <button class="tab-button" data-file="example2">example2.ts</button>
+          <button class="tab-button" data-file="custom">custom.ts</button>
+        </div>
+        <textarea id="typescript-input" placeholder="Enter your TypeScript code here..."></textarea>
+        <div class="controls">
+          <button id="compile-btn">Compile</button>
+          <select id="target-select">
+            <option value="es2020">ES2020</option>
+            <option value="es2019">ES2019</option>
+            <option value="es2018">ES2018</option>
+            <option value="es2017">ES2017</option>
+            <option value="es6">ES6</option>
+            <option value="es5">ES5</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="output-section">
+        <h3>JavaScript Output</h3>
+        <pre id="javascript-output"></pre>
+        <div id="error-output" class="error-section"></div>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
