@@ -187,6 +187,65 @@ button:active {
   display: block;
 }
 
+.output-controls {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  align-items: center;
+}
+
+.console-section {
+  margin-top: 1rem;
+}
+
+.console-section h4 {
+  margin: 0 0 0.5rem 0;
+  color: #fff;
+  font-size: 1rem;
+}
+
+#console-output {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 1rem;
+  color: #c9d1d9;
+  font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: auto;
+  white-space: pre-wrap;
+  margin: 0;
+  min-height: 120px;
+  max-height: 300px;
+}
+
+#run-btn {
+  background: #238636;
+  border-color: #238636;
+}
+
+#run-btn:hover {
+  background: #2ea043;
+  border-color: #2ea043;
+}
+
+#run-btn:disabled {
+  background: #656565;
+  border-color: #656565;
+  cursor: not-allowed;
+}
+
+#clear-console-btn {
+  background: #6c757d;
+  border-color: #6c757d;
+}
+
+#clear-console-btn:hover {
+  background: #5a6268;
+  border-color: #5a6268;
+}
+
 @media (max-width: 1024px) {
   .playground-container {
     grid-template-columns: 1fr;
@@ -238,6 +297,16 @@ button:active {
   
   #target-select {
     background: #fff;
+    color: #333;
+    border-color: #ddd;
+  }
+  
+  .console-section h4 {
+    color: #333;
+  }
+  
+  #console-output {
+    background: #f8f9fa;
     color: #333;
     border-color: #ddd;
   }

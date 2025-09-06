@@ -105,12 +105,16 @@ console.log(greeting.message);`,
 
 class TypeScriptPlayground {
   private currentFile = "example1";
-  private typescriptInput: HTMLTextAreaElement;
-  private javascriptOutput: HTMLPreElement;
-  private errorOutput: HTMLDivElement;
-  private compileBtn: HTMLButtonElement;
-  private targetSelect: HTMLSelectElement;
+  private typescriptInput!: HTMLTextAreaElement;
+  private javascriptOutput!: HTMLPreElement;
+  private errorOutput!: HTMLDivElement;
+  private compileBtn!: HTMLButtonElement;
+  private targetSelect!: HTMLSelectElement;
+  private runBtn!: HTMLButtonElement;
+  private clearConsoleBtn!: HTMLButtonElement;
+  private consoleOutput!: HTMLPreElement;
   private wasmInitialized = false;
+  private compiledCode = "";
 
   constructor() {
     this.initializeElements();
@@ -130,6 +134,7 @@ class TypeScriptPlayground {
       this.wasmInitialized = true;
       this.compileBtn.disabled = false;
       this.compileBtn.textContent = "Compile";
+      this.runBtn.disabled = true; // Initially disabled until code is compiled
 
       // Load the initial sample file after WASM is ready
       this.loadSampleFile(this.currentFile);
@@ -155,6 +160,13 @@ class TypeScriptPlayground {
     this.targetSelect = document.getElementById(
       "target-select"
     ) as HTMLSelectElement;
+    this.runBtn = document.getElementById("run-btn") as HTMLButtonElement;
+    this.clearConsoleBtn = document.getElementById(
+      "clear-console-btn"
+    ) as HTMLButtonElement;
+    this.consoleOutput = document.getElementById(
+      "console-output"
+    ) as HTMLPreElement;
   }
 
   private setupEventListeners(): void {
@@ -187,6 +199,16 @@ class TypeScriptPlayground {
     // Compile on target change
     this.targetSelect.addEventListener("change", () => {
       this.compileTypeScript();
+    });
+
+    // Run button
+    this.runBtn.addEventListener("click", () => {
+      this.runCompiledCode();
+    });
+
+    // Clear console button
+    this.clearConsoleBtn.addEventListener("click", () => {
+      this.clearConsole();
     });
   }
 
@@ -223,6 +245,8 @@ class TypeScriptPlayground {
     const tsCode = this.typescriptInput.value.trim();
     if (!tsCode) {
       this.javascriptOutput.textContent = "";
+      this.compiledCode = "";
+      this.runBtn.disabled = true;
       this.hideError();
       return;
     }
@@ -241,11 +265,15 @@ class TypeScriptPlayground {
       });
 
       this.javascriptOutput.textContent = result.code;
+      this.compiledCode = result.code;
+      this.runBtn.disabled = false;
       this.hideError();
     } catch (error) {
       this.showError(error);
       this.javascriptOutput.textContent =
         "// Compilation failed. See error below.";
+      this.compiledCode = "";
+      this.runBtn.disabled = true;
     }
 
     this.compileBtn.disabled = false;
@@ -267,6 +295,95 @@ class TypeScriptPlayground {
 
   private hideError(): void {
     this.errorOutput.classList.remove("show");
+  }
+
+  private runCompiledCode(): void {
+    if (!this.compiledCode.trim()) {
+      this.appendToConsole("❌ No compiled code to run", "error");
+      return;
+    }
+
+    this.runBtn.disabled = true;
+    this.runBtn.textContent = "Running...";
+
+    try {
+      // Create a custom console object to capture output
+      const originalConsole = window.console;
+      const consoleCapture: any = {
+        log: (...args: any[]) => {
+          this.appendToConsole(args.map(this.formatValue).join(" "), "log");
+          originalConsole.log(...args);
+        },
+        error: (...args: any[]) => {
+          this.appendToConsole(args.map(this.formatValue).join(" "), "error");
+          originalConsole.error(...args);
+        },
+        warn: (...args: any[]) => {
+          this.appendToConsole(args.map(this.formatValue).join(" "), "warn");
+          originalConsole.warn(...args);
+        },
+        info: (...args: any[]) => {
+          this.appendToConsole(args.map(this.formatValue).join(" "), "info");
+          originalConsole.info(...args);
+        },
+        table: (...args: any[]) => {
+          this.appendToConsole(args.map(this.formatValue).join(" "), "table");
+          originalConsole.table(...args);
+        },
+      };
+
+      // Execute the code with captured console
+      const wrappedCode = `
+        (function() {
+          const console = arguments[0];
+          try {
+            ${this.compiledCode}
+          } catch (error) {
+            console.error("Runtime Error:", error.message);
+            throw error;
+          }
+        })
+      `;
+
+      const func = eval(wrappedCode);
+      func(consoleCapture);
+
+      this.appendToConsole("✅ Code executed successfully", "success");
+    } catch (error: any) {
+      this.appendToConsole(`❌ Runtime Error: ${error.message}`, "error");
+    }
+
+    this.runBtn.disabled = false;
+    this.runBtn.textContent = "Run Code";
+  }
+
+  private formatValue(value: any): string {
+    if (value === null) return "null";
+    if (value === undefined) return "undefined";
+    if (typeof value === "string") return value;
+    if (typeof value === "object") {
+      try {
+        return JSON.stringify(value, null, 2);
+      } catch {
+        return String(value);
+      }
+    }
+    return String(value);
+  }
+
+  private appendToConsole(message: string, type: "log" | "error" | "warn" | "info" | "success" | "table" = "log"): void {
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = type === "error" ? "❌" : type === "warn" ? "⚠️" : type === "success" ? "✅" : type === "info" ? "ℹ️" : "📝";
+    
+    const formattedMessage = `[${timestamp}] ${prefix} ${message}\n`;
+    this.consoleOutput.textContent += formattedMessage;
+    
+    // Auto-scroll to bottom
+    this.consoleOutput.scrollTop = this.consoleOutput.scrollHeight;
+  }
+
+  private clearConsole(): void {
+    this.consoleOutput.textContent = "";
   }
 }
 
